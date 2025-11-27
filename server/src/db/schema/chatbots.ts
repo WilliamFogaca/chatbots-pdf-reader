@@ -1,6 +1,6 @@
 import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
-export const chatbot = pgTable("chatbot", {
+export const chatbots = pgTable("chatbots", {
   id: uuid().primaryKey().defaultRandom(),
   title: text().notNull(),
   description: text(),

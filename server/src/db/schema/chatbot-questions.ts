@@ -1,10 +1,10 @@
 import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { chatbot } from "./chatbot.ts";
+import { chatbots } from "./chatbots.ts";
 
 export const chatbotQuestions = pgTable("chatbot_questions", {
   id: uuid().primaryKey().defaultRandom(),
   chatbotId: uuid()
-    .references(() => chatbot.id)
+    .references(() => chatbots.id)
     .notNull(),
   question: text().notNull(),
   answer: text(),
