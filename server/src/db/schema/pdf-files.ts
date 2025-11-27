@@ -8,8 +8,8 @@ import {
 } from "drizzle-orm/pg-core";
 import { chatbots } from "./chatbots.ts";
 
-export const pdfChunks = pgTable(
-  "pdf_chunks",
+export const pdfFiles = pgTable(
+  "pdf_files",
   {
     id: uuid().primaryKey().defaultRandom(),
     chatbotId: uuid()

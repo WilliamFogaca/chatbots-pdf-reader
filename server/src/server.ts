@@ -11,6 +11,7 @@ import { env } from "./env.ts";
 // Routes
 import { createChatbotRoute } from "./http/routes/create-chatbot.ts";
 import { getChatbotsRoute } from "./http/routes/get-chatbots.ts";
+import { uploadPDFFileRoute } from "./http/routes/upload-pdf-file.ts";
 
 const app = fastify().withTypeProvider<ZodTypeProvider>();
 
@@ -27,6 +28,7 @@ app.get("/health", async () => ({ status: "ok" }));
 
 app.register(createChatbotRoute);
 app.register(getChatbotsRoute);
+app.register(uploadPDFFileRoute);
 
 app.listen({ port: env.PORT }).then(() => {
   console.log(`Server is running on http://localhost:${env.PORT}`);
