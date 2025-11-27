@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useCreateChatbot } from "@/http/use-create-chatbot";
 import { Button } from "./ui/button";
 import {
   Card,
@@ -28,7 +29,10 @@ const createChatbotSchema = z.object({
 });
 
 type CreateChatbotFormData = z.infer<typeof createChatbotSchema>;
+
 export function CreateChatbotForm() {
+  const { mutateAsync: createChatbot } = useCreateChatbot();
+
   const createChatbotForm = useForm<CreateChatbotFormData>({
     resolver: zodResolver(createChatbotSchema),
     defaultValues: {
@@ -37,10 +41,11 @@ export function CreateChatbotForm() {
     },
   });
 
-  function handleCreateChatbot(
-    /* { title, description }: CreateChatbotFormData */
-  ) {
-    // await createChatbot({ name, description });
+  async function handleCreateChatbot({
+    title,
+    description,
+  }: CreateChatbotFormData) {
+    await createChatbot({ title, description });
     createChatbotForm.reset();
   }
 

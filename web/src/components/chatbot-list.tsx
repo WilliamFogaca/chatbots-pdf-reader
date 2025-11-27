@@ -1,5 +1,8 @@
+"use client";
+
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -8,30 +11,84 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useChatbots } from "@/http/use-chatbots";
 import { dayjs } from "@/lib/dayjs";
-
-const chatbots = [
-  {
-    id: "1",
-    title: "Chatbot 1",
-    createdAt: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
-    questionCount: 10,
-  },
-  {
-    id: "2",
-    title: "Chatbot 2",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    questionCount: 5,
-  },
-  {
-    id: "3",
-    title: "Chatbot 3",
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-    questionCount: 20,
-  },
-];
+import { Button } from "./ui/button";
 
 export function ChatbotList() {
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    status,
+    refetch,
+  } = useChatbots();
+
+  const renderList = useCallback(() => {
+    if (status === "pending") {
+      return (
+        <p className="text-muted-foreground text-small">
+          Carregando chatbots...
+        </p>
+      );
+    }
+
+    if (status === "error") {
+      return (
+        <div className="flex flex-col items-center gap-3">
+          <p className="text-destructive text-small">
+            Ocorreu um erro ao carregar os chatbots.
+          </p>
+
+          <Button onClick={() => refetch()}>Tentar novamente</Button>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        {data?.pages
+          .flatMap((page) => page.chatbots)
+          .map((chatbot) => (
+            <Link
+              className="flex items-center justify-between rounded-lg border p-3 hover:bg-accent/50"
+              href={`/chatbot/${chatbot.id}`}
+              key={chatbot.id}
+            >
+              <div className="flex flex-1 flex-col gap-1">
+                <h3 className="font-medium text-lg">{chatbot.title}</h3>
+
+                <div className="flex items-center gap-2">
+                  <Badge className="text-xs" variant="secondary">
+                    {dayjs(chatbot.createdAt).toNow()}
+                  </Badge>
+
+                  <Badge className="text-xs" variant="secondary">
+                    {chatbot.questionCount} pergunta(s)
+                  </Badge>
+                </div>
+              </div>
+
+              <span className="flex items-center gap-1 text-small">
+                Entrar <ArrowRight className="size-3" />
+              </span>
+            </Link>
+          ))}
+
+        {hasNextPage && (
+          <Button
+            className="mt-3 w-full cursor-pointer"
+            disabled={!hasNextPage || isFetchingNextPage}
+            onClick={() => fetchNextPage()}
+          >
+            {isFetchingNextPage ? "Carregando..." : "Carregar mais"}
+          </Button>
+        )}
+      </>
+    );
+  }, [status, data, refetch, isFetchingNextPage, fetchNextPage, hasNextPage]);
+
   return (
     <Card>
       <CardHeader>
@@ -41,39 +98,7 @@ export function ChatbotList() {
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="flex flex-col gap-3">
-        {/* {isLoading && (
-          <p className="text-muted-foreground text-small">
-            Carregando salas...
-          </p>
-        )} */}
-
-        {chatbots.map((chatbot) => (
-          <Link
-            className="flex items-center justify-between rounded-lg border p-3 hover:bg-accent/50"
-            href={`/chatbot/${chatbot.id}`}
-            key={chatbot.id}
-          >
-            <div className="flex flex-1 flex-col gap-1">
-              <h3 className="font-medium text-lg">{chatbot.title}</h3>
-
-              <div className="flex items-center gap-2">
-                <Badge className="text-xs" variant="secondary">
-                  {dayjs(chatbot.createdAt).toNow()}
-                </Badge>
-
-                <Badge className="text-xs" variant="secondary">
-                  {chatbot.questionCount} pergunta(s)
-                </Badge>
-              </div>
-            </div>
-
-            <span className="flex items-center gap-1 text-small">
-              Entrar <ArrowRight className="size-3" />
-            </span>
-          </Link>
-        ))}
-      </CardContent>
+      <CardContent className="flex flex-col gap-3">{renderList()}</CardContent>
     </Card>
   );
 }
