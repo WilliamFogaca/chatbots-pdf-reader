@@ -6,8 +6,8 @@ import { schema } from "../../db/schema/index.ts";
 import {
   generateAnswer,
   generateEmbeddings,
-  translateQuestionToEnglish,
-} from "../../services/ollama.ts";
+  translateContentToEnglish,
+} from "../../services/ai-provider.ts";
 
 export const createChatbotQuestionRoute: FastifyPluginCallbackZod = (app) => {
   app.post(
@@ -26,7 +26,7 @@ export const createChatbotQuestionRoute: FastifyPluginCallbackZod = (app) => {
       const { question } = request.body;
       const { chatbotId } = request.params;
 
-      const questionInEnglish = await translateQuestionToEnglish(question);
+      const questionInEnglish = await translateContentToEnglish(question);
 
       const questionEmbeddings = await generateEmbeddings(questionInEnglish);
       const chunkSimilarity = sql<number>`1 - (${cosineDistance(schema.pdfFileChunks.embeddings, questionEmbeddings)})`;
@@ -45,7 +45,7 @@ export const createChatbotQuestionRoute: FastifyPluginCallbackZod = (app) => {
         .where(
           and(
             eq(schema.chatbotPDFFiles.chatbotId, chatbotId),
-            gt(chunkSimilarity, 0.3)
+            gt(chunkSimilarity, 0.25)
           )
         )
         .orderBy((table) => desc(table.similarity))

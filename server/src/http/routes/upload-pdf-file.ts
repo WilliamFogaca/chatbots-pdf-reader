@@ -3,7 +3,7 @@ import { z } from "zod";
 import { db } from "@/db/connection.ts";
 import { schema } from "@/db/schema/index.ts";
 import { extractPagesFromPDF } from "@/utils/extract-pages-from-pdf.ts";
-import { splitTextIntoChunks } from "@/utils/split-text-into-chunks.ts";
+import { splitTextWithLangChain } from "@/utils/split-text-with-langchain.ts";
 import { FailedToCreateResourceError } from "./errors/failed-to-create-resource-error.ts";
 import { FailedToExtractContentFromPdfFileError } from "./errors/failed-to-extract-content-from-pdf-file-error.ts";
 import { RequiredParameterError } from "./errors/required-parameter-error.ts";
@@ -31,12 +31,16 @@ export const uploadPDFFileRoute: FastifyPluginCallbackZod = (app) => {
 
       const pagesFromPdf = await extractPagesFromPDF(pdfBuffer);
 
-      const pageTexts = pagesFromPdf.flatMap((item, index) =>
-        splitTextIntoChunks({
-          text: item,
-          prefix: `(page ${index + 1}) `,
-        })
-      );
+      const pageTexts = (
+        await Promise.all(
+          pagesFromPdf.map((item, index) =>
+            splitTextWithLangChain({
+              text: item,
+              prefix: `(page ${index + 1}) `,
+            })
+          )
+        )
+      ).flat();
 
       if (pageTexts.length === 0) {
         throw new FailedToExtractContentFromPdfFileError();

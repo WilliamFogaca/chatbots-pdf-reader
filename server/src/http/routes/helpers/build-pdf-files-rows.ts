@@ -1,4 +1,4 @@
-import { generateEmbeddings } from "@/services/ollama.ts";
+import { generateEmbeddings } from "@/services/ai-provider.ts";
 
 type PdfFileDataBaseRow = Array<{
   pdfFileId: string;
