@@ -24,7 +24,7 @@ export const getChatbotRoute: FastifyPluginCallbackZod = (app) => {
           description: schema.chatbots.description,
           createdAt: schema.chatbots.createdAt,
           questionCount: count(schema.chatbotQuestions.id),
-          hasPDF: gt(count(schema.pdfFiles.id), 0),
+          hasPDF: gt(count(schema.chatbotPDFFiles.id), 0),
         })
         .from(schema.chatbots)
         .where(eq(schema.chatbots.id, chatbotId))
@@ -33,8 +33,8 @@ export const getChatbotRoute: FastifyPluginCallbackZod = (app) => {
           eq(schema.chatbots.id, schema.chatbotQuestions.chatbotId)
         )
         .leftJoin(
-          schema.pdfFiles,
-          eq(schema.chatbots.id, schema.pdfFiles.chatbotId)
+          schema.chatbotPDFFiles,
+          eq(schema.chatbots.id, schema.chatbotPDFFiles.chatbotId)
         )
         .groupBy(schema.chatbots.id)
         .orderBy(desc(schema.chatbots.createdAt));

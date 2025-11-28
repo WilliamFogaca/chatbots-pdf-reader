@@ -28,31 +28,54 @@ export const uploadPDFFileRoute: FastifyPluginCallbackZod = (app) => {
       }
 
       const pdfBuffer = await pdfFile.toBuffer();
+
       const pagesFromPdf = await extractPagesFromPDF(pdfBuffer);
-      const pageTexts = pagesFromPdf.reduce<string[]>((acc, item, index) => {
-        acc.push(
-          ...splitTextIntoChunks({
-            text: item,
-            prefix: `(page ${index + 1}) `,
-          })
-        );
-        return acc;
-      }, []);
 
-      const rowsToInsert = await buildRowsToInsert(chatbotId, pageTexts);
+      const pageTexts = pagesFromPdf.flatMap((item, index) =>
+        splitTextIntoChunks({
+          text: item,
+          prefix: `(page ${index + 1}) `,
+        })
+      );
 
-      if (rowsToInsert.length === 0) {
+      if (pageTexts.length === 0) {
         throw new FailedToExtractContentFromPdfFileError();
       }
 
-      const result = await db
-        .insert(schema.pdfFiles)
-        .values(rowsToInsert)
-        .returning({ id: schema.pdfFiles.id });
+      const result = await db.transaction(async (tx) => {
+        const insertedPDFfile = await tx
+          .insert(schema.chatbotPDFFiles)
+          .values({
+            chatbotId,
+            fileName: pdfFile.filename,
+            mimeType: pdfFile.mimetype,
+          })
+          .returning({ id: schema.chatbotPDFFiles.id });
 
-      if (result.length === 0) {
-        throw new FailedToCreateResourceError("arquivo PDF");
-      }
+        const insertedPDFfileId = insertedPDFfile[0]?.id;
+
+        if (!insertedPDFfileId) {
+          tx.rollback();
+          throw new FailedToCreateResourceError("arquivo PDF");
+        }
+
+        const rowsToInsert = await buildRowsToInsert(
+          insertedPDFfileId,
+          pageTexts
+        );
+
+        if (rowsToInsert.length === 0) {
+          tx.rollback();
+          throw new FailedToExtractContentFromPdfFileError();
+        }
+
+        const insertedChunks = await tx
+          .insert(schema.pdfFileChunks)
+          .values(rowsToInsert)
+          .returning({ id: schema.pdfFileChunks.id });
+
+        return insertedChunks;
+      });
 
       return reply.status(201).send({
         totalChunks: result.length,

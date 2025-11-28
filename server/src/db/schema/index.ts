@@ -1,9 +1,11 @@
+import { chatbotPDFFiles } from "./chatbot-pdf-files.ts";
 import { chatbotQuestions } from "./chatbot-questions.ts";
 import { chatbots } from "./chatbots.ts";
-import { pdfFiles } from "./pdf-files.ts";
+import { pdfFileChunks } from "./pdf-file-chunks.ts";
 
 export const schema = {
   chatbots,
   chatbotQuestions,
-  pdfFiles,
+  chatbotPDFFiles,
+  pdfFileChunks,
 };

@@ -22,6 +22,20 @@
       "when": 1764273374644,
       "tag": "0002_moaning_apocalypse",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1764345711228,
+      "tag": "0003_parallel_tana_nile",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1764346684172,
+      "tag": "0004_unknown_nova",
+      "breakpoints": true
     }
   ]
 }

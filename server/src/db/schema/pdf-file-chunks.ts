@@ -6,14 +6,14 @@ import {
   uuid,
   vector,
 } from "drizzle-orm/pg-core";
-import { chatbots } from "./chatbots.ts";
+import { chatbotPDFFiles } from "./chatbot-pdf-files.ts";
 
-export const pdfFiles = pgTable(
-  "pdf_files",
+export const pdfFileChunks = pgTable(
+  "pdf_file_chunks",
   {
     id: uuid().primaryKey().defaultRandom(),
-    chatbotId: uuid()
-      .references(() => chatbots.id)
+    pdfFileId: uuid()
+      .references(() => chatbotPDFFiles.id, { onDelete: "cascade" })
       .notNull(),
     content: text().notNull(),
     embeddings: vector({ dimensions: 768 }).notNull(),

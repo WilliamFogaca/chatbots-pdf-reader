@@ -1,7 +1,7 @@
 import { generateEmbeddings } from "@/services/ollama.ts";
 
 type PdfFileDataBaseRow = Array<{
-  chatbotId: string;
+  pdfFileId: string;
   content: string;
   embeddings: number[];
 }>;
@@ -26,7 +26,7 @@ async function generateEmbeddingWithRetry(
 }
 
 export async function buildRowsToInsert(
-  chatbotId: string,
+  pdfFileId: string,
   pageTexts: string[]
 ) {
   const rowsToInsert: PdfFileDataBaseRow = [];
@@ -40,7 +40,7 @@ export async function buildRowsToInsert(
       const embedding = await generateEmbeddingWithRetry(chunkContent);
 
       rowsToInsert.push({
-        chatbotId,
+        pdfFileId,
         content: chunkContent,
         embeddings: embedding,
       });
