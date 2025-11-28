@@ -2,7 +2,7 @@
 
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { useChatbots } from "@/http/use-chatbots";
 import { dayjs } from "@/lib/dayjs";
+import { EmptyData } from "./empty-data";
 import { ErrorAlert } from "./error-alert";
 import { LoadingWithText } from "./loading-with-text";
 import { Button } from "./ui/button";
@@ -26,6 +27,10 @@ export function ChatbotList() {
     status,
     refetch,
   } = useChatbots();
+  const chatbots = useMemo(
+    () => data?.pages.flatMap((page) => page.chatbots) ?? [],
+    [data]
+  );
 
   const renderList = useCallback(() => {
     if (status === "pending") {
@@ -36,35 +41,42 @@ export function ChatbotList() {
       return <ErrorAlert tryAgain={() => refetch()} />;
     }
 
+    if (chatbots?.length === 0) {
+      return (
+        <EmptyData
+          description="Crie um novo chatbot para começar."
+          title="Nenhum chatbot encontrado."
+        />
+      );
+    }
+
     return (
       <>
-        {data?.pages
-          .flatMap((page) => page.chatbots)
-          .map((chatbot) => (
-            <Link
-              className="flex items-center justify-between rounded-lg border p-3 hover:bg-accent/50"
-              href={`/chatbot/${chatbot.id}`}
-              key={chatbot.id}
-            >
-              <div className="flex flex-1 flex-col gap-1">
-                <h3 className="font-medium text-lg">{chatbot.title}</h3>
+        {chatbots.map((chatbot) => (
+          <Link
+            className="flex items-center justify-between rounded-lg border p-3 hover:bg-accent/50"
+            href={`/chatbot/${chatbot.id}`}
+            key={chatbot.id}
+          >
+            <div className="flex flex-1 flex-col gap-1">
+              <h3 className="font-medium text-lg">{chatbot.title}</h3>
 
-                <div className="flex items-center gap-2">
-                  <Badge className="text-xs" variant="secondary">
-                    {dayjs(chatbot.createdAt).toNow()}
-                  </Badge>
+              <div className="flex items-center gap-2">
+                <Badge className="text-xs" variant="secondary">
+                  {dayjs(chatbot.createdAt).toNow()}
+                </Badge>
 
-                  <Badge className="text-xs" variant="secondary">
-                    {chatbot.questionCount} pergunta(s)
-                  </Badge>
-                </div>
+                <Badge className="text-xs" variant="secondary">
+                  {chatbot.questionCount} pergunta(s)
+                </Badge>
               </div>
+            </div>
 
-              <span className="flex items-center gap-1 text-small">
-                Entrar <ArrowRight className="size-3" />
-              </span>
-            </Link>
-          ))}
+            <span className="flex items-center gap-1 text-small">
+              Entrar <ArrowRight className="size-3" />
+            </span>
+          </Link>
+        ))}
 
         {hasNextPage && (
           <Button
@@ -77,7 +89,14 @@ export function ChatbotList() {
         )}
       </>
     );
-  }, [status, data, refetch, isFetchingNextPage, fetchNextPage, hasNextPage]);
+  }, [
+    status,
+    chatbots,
+    refetch,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+  ]);
 
   return (
     <Card>

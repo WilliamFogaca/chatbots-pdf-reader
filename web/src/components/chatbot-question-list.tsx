@@ -1,39 +1,74 @@
 "use client";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useChatbotQuestions } from "@/http/use-chatbot-questions";
 import { ChatbotQuestionItem } from "./chatbot-question-item";
 import { EmptyData } from "./empty-data";
 import { ErrorAlert } from "./error-alert";
 import { LoadingWithText } from "./loading-with-text";
+import { Button } from "./ui/button";
 
 type QuestionListProps = {
   chatbotId: string;
 };
 
 export function ChatbotQuestionList({ chatbotId }: QuestionListProps) {
-  const { data, isLoading, isError, refetch } = useChatbotQuestions(chatbotId);
-  const questions = data?.questions ?? [];
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    status,
+    refetch,
+  } = useChatbotQuestions(chatbotId);
+  const questions = useMemo(
+    () => data?.pages.flatMap((page) => page.questions) ?? [],
+    [data]
+  );
 
   const renderList = useCallback(() => {
-    if (isLoading) {
+    if (status === "pending") {
       return <LoadingWithText />;
     }
 
-    if (isError) {
+    if (status === "error") {
       return <ErrorAlert tryAgain={() => refetch()} />;
     }
 
-    return questions?.length === 0 ? (
-      <EmptyData
-        description="Nenhuma pergunta foi feita para este Chatbot ainda."
-        title="Nenhuma pergunta encontrada"
-      />
-    ) : (
-      questions.map((question) => (
-        <ChatbotQuestionItem key={question.id} question={question} />
-      ))
+    if (questions?.length === 0) {
+      return (
+        <EmptyData
+          description="Nenhuma pergunta foi feita para este Chatbot ainda."
+          title="Nenhuma pergunta encontrada"
+        />
+      );
+    }
+
+    return (
+      <>
+        {questions.map((question) => (
+          <ChatbotQuestionItem key={question.id} question={question} />
+        ))}
+
+        {hasNextPage && (
+          <Button
+            className="mt-3 w-full cursor-pointer"
+            disabled={!hasNextPage || isFetchingNextPage}
+            onClick={() => fetchNextPage()}
+          >
+            {isFetchingNextPage ? "Carregando..." : "Carregar mais"}
+          </Button>
+        )}
+      </>
     );
-  }, [questions, isError, isLoading, refetch]);
+  }, [
+    status,
+    questions,
+    refetch,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+  ]);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">

@@ -29,7 +29,7 @@ export default async function ChatbotPage({
   return (
     <Dialog>
       <div className="min-h-screen bg-zinc-950">
-        <div className="container mx-auto max-w-4xl px-4 py-8">
+        <div className="container mx-auto max-w-4xl px-4 pt-8 pb-16">
           <div className="mb-8">
             <div className="mb-4 flex items-center justify-between">
               <Link href="/">
