@@ -14,16 +14,11 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { useChatbot } from "@/http/use-chatbot";
+import { useCreateChatbotQuestion } from "@/http/use-create-chatbot-question";
+import { EmptyData } from "./empty-data";
 import { ErrorAlert } from "./error-alert";
 import { LoadingWithText } from "./loading-with-text";
 import { DialogTrigger } from "./ui/dialog";
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle,
-} from "./ui/empty";
 import { UploadPDFButton } from "./upload-pdf-button";
 
 const createQuestionSchema = z.object({
@@ -42,6 +37,7 @@ type QuestionFormProps = {
 
 export function ChatbotQuestionForm({ chatbotId }: QuestionFormProps) {
   const { data: chatbot, isLoading, isError, refetch } = useChatbot(chatbotId);
+  const { mutateAsync: createQuestion } = useCreateChatbotQuestion();
 
   const form = useForm<CreateQuestionFormData>({
     resolver: zodResolver(createQuestionSchema),
@@ -51,11 +47,15 @@ export function ChatbotQuestionForm({ chatbotId }: QuestionFormProps) {
   });
   const { isSubmitting } = form.formState;
 
-  function handleCreateQuestion(data: CreateQuestionFormData) {
-    // await createQuestion({
-    //   chatbotId,
-    //   question: data.question,
-    // });
+  async function handleCreateQuestion(data: CreateQuestionFormData) {
+    try {
+      await createQuestion({
+        chatbotId,
+        question: data.question,
+      });
+    } catch {
+      // Error handling is done in the hook
+    }
 
     form.reset();
   }
@@ -70,19 +70,14 @@ export function ChatbotQuestionForm({ chatbotId }: QuestionFormProps) {
 
   if (!chatbot.hasPDF) {
     return (
-      <Empty>
-        <EmptyHeader>
-          <EmptyTitle>PDF não encontrado</EmptyTitle>
-          <EmptyDescription>
-            Envie um PDF para começar a fazer perguntas.
-          </EmptyDescription>
-        </EmptyHeader>
-        <EmptyContent>
-          <DialogTrigger>
-            <UploadPDFButton asChild />
-          </DialogTrigger>
-        </EmptyContent>
-      </Empty>
+      <EmptyData
+        description="Envie um PDF para começar a fazer perguntas."
+        title="PDF não encontrado"
+      >
+        <DialogTrigger>
+          <UploadPDFButton asChild />
+        </DialogTrigger>
+      </EmptyData>
     );
   }
 
@@ -111,7 +106,11 @@ export function ChatbotQuestionForm({ chatbotId }: QuestionFormProps) {
           )}
         />
 
-        <Button disabled={isSubmitting} type="submit">
+        <Button
+          className="cursor-pointer"
+          disabled={isSubmitting}
+          type="submit"
+        >
           {isSubmitting ? "Enviando..." : "Enviar Pergunta"}
         </Button>
       </form>

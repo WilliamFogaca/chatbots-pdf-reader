@@ -26,6 +26,8 @@ export function useCreateChatbot() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["get-chatbots"] });
+
+      toast.success("Chatbot criado com sucesso!");
     },
     onError: () => {
       toast.error(
