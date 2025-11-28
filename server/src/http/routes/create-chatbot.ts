@@ -1,7 +1,7 @@
 import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
 import { z } from "zod";
-import { db } from "../../db/connection.ts";
-import { schema } from "../../db/schema/index.ts";
+import { db } from "@/db/connection.ts";
+import { schema } from "@/db/schema/index.ts";
 import { FailedToCreateResourceError } from "./errors/failed-to-create-resource-error.ts";
 
 export const createChatbotRoute: FastifyPluginCallbackZod = (app) => {
