@@ -3,7 +3,11 @@ import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { db } from "../../db/connection.ts";
 import { schema } from "../../db/schema/index.ts";
-import { generateEmbeddings } from "../../services/ollama.ts";
+import {
+  generateAnswer,
+  generateEmbeddings,
+  translateQuestionToEnglish,
+} from "../../services/ollama.ts";
 
 export const createChatbotQuestionRoute: FastifyPluginCallbackZod = (app) => {
   app.post(
@@ -22,7 +26,9 @@ export const createChatbotQuestionRoute: FastifyPluginCallbackZod = (app) => {
       const { question } = request.body;
       const { chatbotId } = request.params;
 
-      const questionEmbeddings = await generateEmbeddings(question);
+      const questionInEnglish = await translateQuestionToEnglish(question);
+
+      const questionEmbeddings = await generateEmbeddings(questionInEnglish);
       const chunkSimilarity = sql<number>`1 - (${cosineDistance(schema.pdfFileChunks.embeddings, questionEmbeddings)})`;
 
       const chunks = await db
@@ -39,19 +45,24 @@ export const createChatbotQuestionRoute: FastifyPluginCallbackZod = (app) => {
         .where(
           and(
             eq(schema.chatbotPDFFiles.chatbotId, chatbotId),
-            gt(chunkSimilarity, 0.7)
+            gt(chunkSimilarity, 0.3)
           )
         )
         .orderBy((table) => desc(table.similarity))
-        .limit(3);
+        .limit(5);
 
-      console.log("Similar chunks found:", chunks);
+      let answer: string | null = null;
+
+      if (chunks.length > 0) {
+        const contents = chunks.map((chunk) => chunk.content);
+        answer = await generateAnswer(questionInEnglish, contents);
+      }
 
       const result = await db
         .insert(schema.chatbotQuestions)
         .values({
           question,
-          answer: null,
+          answer,
           chatbotId,
         })
         .returning();
