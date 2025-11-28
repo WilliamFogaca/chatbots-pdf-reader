@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { count, desc, eq } from "drizzle-orm";
 import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { db } from "../../db/connection.ts";
@@ -9,6 +9,9 @@ export const getChatbotQuestionsRoute: FastifyPluginCallbackZod = (app) => {
     "/chatbots/:chatbotId/questions",
     {
       schema: {
+        querystring: z.object({
+          page: z.coerce.number().optional().default(1),
+        }),
         params: z.object({
           chatbotId: z.string(),
         }),
@@ -16,8 +19,11 @@ export const getChatbotQuestionsRoute: FastifyPluginCallbackZod = (app) => {
     },
     async (request) => {
       const { chatbotId } = request.params;
+      const { page } = request.query;
 
-      const questions = await db
+      const itemsPerPage = 10;
+
+      const questionsPromise = db
         .select({
           id: schema.chatbotQuestions.id,
           question: schema.chatbotQuestions.question,
@@ -26,9 +32,33 @@ export const getChatbotQuestionsRoute: FastifyPluginCallbackZod = (app) => {
         })
         .from(schema.chatbotQuestions)
         .where(eq(schema.chatbotQuestions.chatbotId, chatbotId))
-        .orderBy(desc(schema.chatbotQuestions.createdAt));
+        .orderBy(desc(schema.chatbotQuestions.createdAt))
+        .limit(itemsPerPage)
+        .offset((page - 1) * itemsPerPage);
 
-      return { questions };
+      const countPromise = db
+        .select({ count: count() })
+        .from(schema.chatbotQuestions)
+        .where(eq(schema.chatbotQuestions.chatbotId, chatbotId));
+
+      const [questions, [totalCountResult]] = await Promise.all([
+        questionsPromise,
+        countPromise,
+      ]);
+
+      const totalItems = totalCountResult?.count || 0;
+      const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+      return {
+        questions,
+        pagination: {
+          page,
+          itemsPerPage,
+          totalItems,
+          totalPages,
+          hasNextPage: page < totalPages,
+        },
+      };
     }
   );
 };
