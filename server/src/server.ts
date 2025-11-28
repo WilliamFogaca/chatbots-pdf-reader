@@ -7,10 +7,11 @@ import {
   validatorCompiler,
 } from "fastify-type-provider-zod";
 import { env } from "./env.ts";
-
 // Routes
 import { createChatbotRoute } from "./http/routes/create-chatbot.ts";
+import { createChatbotQuestionRoute } from "./http/routes/create-chatbot-question.ts";
 import { getChatbotRoute } from "./http/routes/get-chatbot.ts";
+import { getChatbotQuestionsRoute } from "./http/routes/get-chatbot-questions.ts";
 import { getChatbotsRoute } from "./http/routes/get-chatbots.ts";
 import { uploadPDFFileRoute } from "./http/routes/upload-pdf-file.ts";
 
@@ -35,6 +36,8 @@ app.register(createChatbotRoute);
 app.register(getChatbotsRoute);
 app.register(getChatbotRoute);
 app.register(uploadPDFFileRoute);
+app.register(getChatbotQuestionsRoute);
+app.register(createChatbotQuestionRoute);
 
 app.listen({ port: env.PORT }).then(() => {
   console.log(`Server is running on http://localhost:${env.PORT}`);
