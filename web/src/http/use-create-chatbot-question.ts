@@ -8,6 +8,11 @@ import type { GetChatbotQuestionsResponse } from "./types/get-chatbot-questions-
 export function useCreateChatbotQuestion() {
   const queryClient = useQueryClient();
 
+  const getQueryKey = (chatbotId: string) => [
+    "get-chatbot-questions",
+    chatbotId,
+  ];
+
   return useMutation({
     mutationFn: async ({
       chatbotId,
@@ -33,10 +38,13 @@ export function useCreateChatbotQuestion() {
       return result;
     },
 
-    onMutate({ chatbotId, question }) {
-      const currentData = queryClient.getQueryData<GetChatbotQuestionsResponse>(
-        ["get-chatbot-questions", chatbotId]
-      );
+    async onMutate({ chatbotId, question }) {
+      const queryKey = getQueryKey(chatbotId);
+
+      await queryClient.cancelQueries({ queryKey });
+
+      const currentData =
+        queryClient.getQueryData<GetChatbotQuestionsResponse>(queryKey);
 
       const questionsArray = currentData?.questions ?? [];
 
@@ -48,29 +56,26 @@ export function useCreateChatbotQuestion() {
         isGeneratingAnswer: true,
       };
 
-      queryClient.setQueryData<GetChatbotQuestionsResponse>(
-        ["get-chatbot-questions", chatbotId],
-        { questions: [newQuestion, ...questionsArray] }
-      );
+      queryClient.setQueryData<GetChatbotQuestionsResponse>(queryKey, {
+        questions: [newQuestion, ...questionsArray],
+      });
 
       return { currentData, newQuestion };
     },
 
     onSuccess(data, { chatbotId }, context) {
-      queryClient.setQueryData<GetChatbotQuestionsResponse>(
-        ["get-chatbot-questions", chatbotId],
-        (oldQuestions) => {
-          if (!oldQuestions) {
-            return oldQuestions;
-          }
+      console.log("Dados retornados do servidor:", data);
 
-          if (!context?.newQuestion) {
-            return oldQuestions;
+      queryClient.setQueryData<GetChatbotQuestionsResponse>(
+        getQueryKey(chatbotId),
+        (oldData) => {
+          if (!(oldData && context?.newQuestion)) {
+            return oldData;
           }
 
           return {
-            ...oldQuestions,
-            questions: oldQuestions.questions.map((question) => {
+            ...oldData,
+            questions: oldData.questions.map((question) => {
               if (question.id === context.newQuestion.id) {
                 return {
                   ...context.newQuestion,
@@ -96,10 +101,16 @@ export function useCreateChatbotQuestion() {
 
       if (context?.currentData) {
         queryClient.setQueryData<GetChatbotQuestionsResponse>(
-          ["get-chatbot-questions", chatbotId],
+          getQueryKey(chatbotId),
           context.currentData
         );
       }
+    },
+
+    onSettled: (_, __, { chatbotId }) => {
+      queryClient.invalidateQueries({
+        queryKey: getQueryKey(chatbotId),
+      });
     },
   });
 }
