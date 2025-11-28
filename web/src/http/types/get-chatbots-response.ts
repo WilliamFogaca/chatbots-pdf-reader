@@ -1,12 +1,7 @@
-export type Chatbots = Array<{
-  id: string;
-  title: string;
-  createdAt: string;
-  questionCount: number;
-}>;
+import type { Chatbot } from "@/types/chatbot";
 
 export type GetChatbotsResponse = {
-  chatbots: Chatbots;
+  chatbots: Chatbot[];
   pagination: {
     page: number;
     itemsPerPage: number;

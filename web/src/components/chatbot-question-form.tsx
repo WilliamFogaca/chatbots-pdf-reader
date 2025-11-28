@@ -5,13 +5,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   Form,
   FormControl,
   FormField,
@@ -20,8 +13,19 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
+import { useChatbot } from "@/http/use-chatbot";
+import { ErrorAlert } from "./error-alert";
+import { LoadingWithText } from "./loading-with-text";
+import { DialogTrigger } from "./ui/dialog";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "./ui/empty";
+import { UploadPDFButton } from "./upload-pdf-button";
 
-// Esquema de validação no mesmo arquivo conforme solicitado
 const createQuestionSchema = z.object({
   question: z
     .string()
@@ -37,6 +41,8 @@ type QuestionFormProps = {
 };
 
 export function ChatbotQuestionForm({ chatbotId }: QuestionFormProps) {
+  const { data: chatbot, isLoading, isError, refetch } = useChatbot(chatbotId);
+
   const form = useForm<CreateQuestionFormData>({
     resolver: zodResolver(createQuestionSchema),
     defaultValues: {
@@ -54,45 +60,61 @@ export function ChatbotQuestionForm({ chatbotId }: QuestionFormProps) {
     form.reset();
   }
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Fazer uma Pergunta sobre o PDF</CardTitle>
-        <CardDescription>
-          Digite sua pergunta abaixo para receber uma resposta gerada por I.A.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form
-            className="flex flex-col gap-4"
-            onSubmit={form.handleSubmit(handleCreateQuestion)}
-          >
-            <FormField
-              control={form.control}
-              name="question"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Sua Pergunta</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      className="min-h-[100px]"
-                      disabled={isSubmitting}
-                      placeholder="O que você gostaria de saber?"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+  if (isLoading) {
+    return <LoadingWithText />;
+  }
 
-            <Button disabled={isSubmitting} type="submit">
-              {isSubmitting ? "Enviando..." : "Enviar Pergunta"}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+  if (isError || !chatbot) {
+    return <ErrorAlert tryAgain={() => refetch()} />;
+  }
+
+  if (!chatbot.hasPDF) {
+    return (
+      <Empty>
+        <EmptyHeader>
+          <EmptyTitle>PDF não encontrado</EmptyTitle>
+          <EmptyDescription>
+            Envie um PDF para começar a fazer perguntas.
+          </EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <DialogTrigger>
+            <UploadPDFButton asChild />
+          </DialogTrigger>
+        </EmptyContent>
+      </Empty>
+    );
+  }
+
+  return (
+    <Form {...form}>
+      <form
+        className="flex flex-col gap-4"
+        onSubmit={form.handleSubmit(handleCreateQuestion)}
+      >
+        <FormField
+          control={form.control}
+          name="question"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Sua Pergunta</FormLabel>
+              <FormControl>
+                <Textarea
+                  className="min-h-[100px]"
+                  disabled={isSubmitting}
+                  placeholder="O que você gostaria de saber?"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button disabled={isSubmitting} type="submit">
+          {isSubmitting ? "Enviando..." : "Enviar Pergunta"}
+        </Button>
+      </form>
+    </Form>
   );
 }

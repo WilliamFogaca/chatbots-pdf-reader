@@ -45,7 +45,12 @@ export function CreateChatbotForm() {
     title,
     description,
   }: CreateChatbotFormData) {
-    await createChatbot({ title, description });
+    try {
+      await createChatbot({ title, description });
+    } catch {
+      // Error handling is done in the useCreateChatbot hook
+    }
+
     createChatbotForm.reset();
   }
 

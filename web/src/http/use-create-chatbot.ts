@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import type { CreateChatbotRequest } from "./types/create-chatbot-request";
 import type { CreateChatbotResponse } from "./types/create-chatbot-response";
 
@@ -25,6 +26,11 @@ export function useCreateChatbot() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["get-chatbots"] });
+    },
+    onError: () => {
+      toast.error(
+        "Não foi possível criar o chatbot. Por favor, tente novamente."
+      );
     },
   });
 }

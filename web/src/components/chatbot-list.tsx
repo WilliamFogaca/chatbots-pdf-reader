@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/card";
 import { useChatbots } from "@/http/use-chatbots";
 import { dayjs } from "@/lib/dayjs";
+import { ErrorAlert } from "./error-alert";
+import { LoadingWithText } from "./loading-with-text";
 import { Button } from "./ui/button";
 
 export function ChatbotList() {
@@ -27,23 +29,11 @@ export function ChatbotList() {
 
   const renderList = useCallback(() => {
     if (status === "pending") {
-      return (
-        <p className="text-muted-foreground text-small">
-          Carregando chatbots...
-        </p>
-      );
+      return <LoadingWithText />;
     }
 
     if (status === "error") {
-      return (
-        <div className="flex flex-col items-center gap-3">
-          <p className="text-destructive text-small">
-            Ocorreu um erro ao carregar os chatbots.
-          </p>
-
-          <Button onClick={() => refetch()}>Tentar novamente</Button>
-        </div>
-      );
+      return <ErrorAlert tryAgain={() => refetch()} />;
     }
 
     return (
