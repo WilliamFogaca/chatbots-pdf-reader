@@ -1,6 +1,6 @@
 import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
 import { z } from "zod";
-import { getChatbotRepository } from "@/db/factories/chatbot-repository-factory.ts";
+import { getChatbotRepository } from "@/db/factories/repositories-factory.ts";
 
 export const getChatbotRoute: FastifyPluginCallbackZod = (app) => {
   app.get(
