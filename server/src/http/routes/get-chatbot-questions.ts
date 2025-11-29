@@ -1,8 +1,6 @@
-import { count, desc, eq } from "drizzle-orm";
 import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
 import { z } from "zod";
-import { db } from "@/db/drizzle/connection.ts";
-import { schema } from "@/db/drizzle/schema/index.ts";
+import { getChatbotQuestionsRepository } from "@/db/factories/repositories-factory.ts";
 
 export const getChatbotQuestionsRoute: FastifyPluginCallbackZod = (app) => {
   app.get(
@@ -23,41 +21,17 @@ export const getChatbotQuestionsRoute: FastifyPluginCallbackZod = (app) => {
 
       const itemsPerPage = 10;
 
-      const questionsPromise = db
-        .select({
-          id: schema.chatbotQuestions.id,
-          question: schema.chatbotQuestions.question,
-          answer: schema.chatbotQuestions.answer,
-          createdAt: schema.chatbotQuestions.createdAt,
-        })
-        .from(schema.chatbotQuestions)
-        .where(eq(schema.chatbotQuestions.chatbotId, chatbotId))
-        .orderBy(desc(schema.chatbotQuestions.createdAt))
-        .limit(itemsPerPage)
-        .offset((page - 1) * itemsPerPage);
+      const chatbotQuestionsRepository = getChatbotQuestionsRepository();
 
-      const countPromise = db
-        .select({ count: count() })
-        .from(schema.chatbotQuestions)
-        .where(eq(schema.chatbotQuestions.chatbotId, chatbotId));
-
-      const [questions, [totalCountResult]] = await Promise.all([
-        questionsPromise,
-        countPromise,
-      ]);
-
-      const totalItems = totalCountResult?.count || 0;
-      const totalPages = Math.ceil(totalItems / itemsPerPage);
+      const result = await chatbotQuestionsRepository.findManyWithPagination({
+        chatbotId,
+        page,
+        itemsPerPage,
+      });
 
       return {
-        questions,
-        pagination: {
-          page,
-          itemsPerPage,
-          totalItems,
-          totalPages,
-          hasNextPage: page < totalPages,
-        },
+        questions: result.data,
+        pagination: result.pagination,
       };
     }
   );

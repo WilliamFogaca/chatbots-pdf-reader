@@ -1,12 +1,12 @@
 import { count, desc, eq, gt } from "drizzle-orm";
 import type {
-  PaginatedResult,
-  PaginationParams,
-} from "@/domain/core/pagination-params.ts";
-import type { Chatbot, ChatbotWithStats } from "@/domain/entities/chatbot.ts";
-import type {
   ChatbotRepository,
   CreateChatbotParams,
+  CreateChatbotResult,
+  FindChatbotByIdParams,
+  FindChatbotByIdResult,
+  FindManyChatbotsParams,
+  FindManyChatbotsResult,
 } from "@/domain/repositories/chatbot-repository.ts";
 import { FailedToCreateResourceError } from "@/http/routes/errors/failed-to-create-resource-error.ts";
 import { db } from "../connection.ts";
@@ -14,8 +14,8 @@ import { schema } from "../schema/index.ts";
 
 export class DrizzleChatbotRepository implements ChatbotRepository {
   async findManyWithPagination(
-    params: PaginationParams
-  ): Promise<PaginatedResult<ChatbotWithStats>> {
+    params: FindManyChatbotsParams
+  ): Promise<FindManyChatbotsResult> {
     const { page, itemsPerPage } = params;
 
     const chatbotsPromise = db
@@ -58,7 +58,9 @@ export class DrizzleChatbotRepository implements ChatbotRepository {
     };
   }
 
-  async findById(chatbotId: string): Promise<Chatbot | null> {
+  async findById({
+    chatbotId,
+  }: FindChatbotByIdParams): Promise<FindChatbotByIdResult> {
     const chatbot = await db
       .select({
         id: schema.chatbots.id,
@@ -84,7 +86,10 @@ export class DrizzleChatbotRepository implements ChatbotRepository {
     return chatbot[0] || null;
   }
 
-  async create({ title, description }: CreateChatbotParams): Promise<Chatbot> {
+  async create({
+    title,
+    description,
+  }: CreateChatbotParams): Promise<CreateChatbotResult> {
     const result = await db
       .insert(schema.chatbots)
       .values({

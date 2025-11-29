@@ -17,7 +17,7 @@ export const getChatbotRoute: FastifyPluginCallbackZod = (app) => {
 
       const chatbotRepository = getChatbotRepository();
 
-      const chatbot = await chatbotRepository.findById(chatbotId);
+      const chatbot = await chatbotRepository.findById({ chatbotId });
 
       return { chatbot };
     }

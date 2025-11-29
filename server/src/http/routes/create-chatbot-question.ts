@@ -3,6 +3,7 @@ import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { db } from "@/db/drizzle/connection.ts";
 import { schema } from "@/db/drizzle/schema/index.ts";
+import { getChatbotQuestionsRepository } from "@/db/factories/repositories-factory.ts";
 import {
   generateAnswer,
   generateEmbeddings,
@@ -58,24 +59,17 @@ export const createChatbotQuestionRoute: FastifyPluginCallbackZod = (app) => {
         answer = await generateAnswer(questionInEnglish, contents);
       }
 
-      const result = await db
-        .insert(schema.chatbotQuestions)
-        .values({
-          question,
-          answer,
-          chatbotId,
-        })
-        .returning();
+      const chatbotQuestionRepository = getChatbotQuestionsRepository();
 
-      const insertedQuestion = result[0];
-
-      if (!insertedQuestion) {
-        throw new Error("Erro ao criar a pergunta");
-      }
+      const result = await chatbotQuestionRepository.create({
+        chatbotId,
+        question,
+        answer,
+      });
 
       return reply.status(201).send({
-        questionId: insertedQuestion.id,
-        answer: null,
+        questionId: result.id,
+        answer,
       });
     }
   );
