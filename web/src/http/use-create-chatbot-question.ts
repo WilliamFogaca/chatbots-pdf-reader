@@ -1,17 +1,17 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  type InfiniteData,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { ChatbotQuestion } from "@/types/chatbot-questions";
 import type { CreateChatbotQuestionRequest } from "./types/create-chatbot-question-request";
 import type { CreateChatbotQuestionResponse } from "./types/create-chatbot-question-response";
 import type { GetChatbotQuestionsResponse } from "./types/get-chatbot-questions-response";
+import { getChatbotQuestionsQueryKey } from "./use-chatbot-questions";
 
 export function useCreateChatbotQuestion() {
   const queryClient = useQueryClient();
-
-  const getQueryKey = (chatbotId: string) => [
-    "get-chatbot-questions",
-    chatbotId,
-  ];
 
   return useMutation({
     mutationFn: async ({
@@ -39,14 +39,14 @@ export function useCreateChatbotQuestion() {
     },
 
     async onMutate({ chatbotId, question }) {
-      const queryKey = getQueryKey(chatbotId);
+      const queryKey = getChatbotQuestionsQueryKey(chatbotId);
 
       await queryClient.cancelQueries({ queryKey });
 
       const currentData =
-        queryClient.getQueryData<GetChatbotQuestionsResponse>(queryKey);
-
-      const questionsArray = currentData?.questions ?? [];
+        queryClient.getQueryData<InfiniteData<GetChatbotQuestionsResponse>>(
+          queryKey
+        );
 
       const newQuestion: ChatbotQuestion = {
         id: crypto.randomUUID(),
@@ -56,18 +56,48 @@ export function useCreateChatbotQuestion() {
         isGeneratingAnswer: true,
       };
 
-      queryClient.setQueryData<GetChatbotQuestionsResponse>(queryKey, {
-        questions: [newQuestion, ...questionsArray],
-      });
+      queryClient.setQueryData<InfiniteData<GetChatbotQuestionsResponse>>(
+        queryKey,
+        (oldData) => {
+          if (!oldData) {
+            return {
+              pages: [
+                {
+                  questions: [newQuestion],
+                  pagination: {
+                    page: 1,
+                    itemsPerPage: 10,
+                    totalItems: 1,
+                    totalPages: 1,
+                    hasNextPage: false,
+                  },
+                },
+              ],
+              pageParams: [1],
+            };
+          }
+
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page, index) => {
+              if (index === 0) {
+                return {
+                  ...page,
+                  questions: [newQuestion, ...page.questions],
+                };
+              }
+              return page;
+            }),
+          };
+        }
+      );
 
       return { currentData, newQuestion };
     },
 
     onSuccess(data, { chatbotId }, context) {
-      console.log("Dados retornados do servidor:", data);
-
-      queryClient.setQueryData<GetChatbotQuestionsResponse>(
-        getQueryKey(chatbotId),
+      queryClient.setQueryData<InfiniteData<GetChatbotQuestionsResponse>>(
+        getChatbotQuestionsQueryKey(chatbotId),
         (oldData) => {
           if (!(oldData && context?.newQuestion)) {
             return oldData;
@@ -75,18 +105,21 @@ export function useCreateChatbotQuestion() {
 
           return {
             ...oldData,
-            questions: oldData.questions.map((question) => {
-              if (question.id === context.newQuestion.id) {
-                return {
-                  ...context.newQuestion,
-                  id: data.questionId,
-                  answer: data.answer,
-                  isGeneratingAnswer: false,
-                };
-              }
+            pages: oldData.pages.map((page) => ({
+              ...page,
+              questions: page.questions.map((question) => {
+                if (question.id === context.newQuestion.id) {
+                  return {
+                    ...context.newQuestion,
+                    id: data.questionId,
+                    answer: data.answer,
+                    isGeneratingAnswer: false,
+                  };
+                }
 
-              return question;
-            }),
+                return question;
+              }),
+            })),
           };
         }
       );
@@ -94,14 +127,14 @@ export function useCreateChatbotQuestion() {
       toast.success("Pergunta criada com sucesso!");
     },
 
-    onError(_, { chatbotId }, context) {
+    onError(_error, { chatbotId }, context) {
       toast.error(
         "Não foi possível criar a pergunta. Por favor, tente novamente."
       );
 
       if (context?.currentData) {
-        queryClient.setQueryData<GetChatbotQuestionsResponse>(
-          getQueryKey(chatbotId),
+        queryClient.setQueryData<InfiniteData<GetChatbotQuestionsResponse>>(
+          getChatbotQuestionsQueryKey(chatbotId),
           context.currentData
         );
       }
@@ -109,7 +142,7 @@ export function useCreateChatbotQuestion() {
 
     onSettled: (_, __, { chatbotId }) => {
       queryClient.invalidateQueries({
-        queryKey: getQueryKey(chatbotId),
+        queryKey: getChatbotQuestionsQueryKey(chatbotId),
       });
     },
   });

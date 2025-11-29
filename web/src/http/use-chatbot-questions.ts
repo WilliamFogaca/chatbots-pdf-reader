@@ -10,6 +10,10 @@ type ApiError = {
   statusCode?: number;
 };
 
+export function getChatbotQuestionsQueryKey(chatbotId: string) {
+  return ["get-chatbot-questions", chatbotId];
+}
+
 export function useChatbotQuestions(chatbotId: string) {
   return useInfiniteQuery<
     GetChatbotQuestionsResponse,
@@ -18,9 +22,8 @@ export function useChatbotQuestions(chatbotId: string) {
     QueryKey,
     number
   >({
-    queryKey: ["get-chatbot-questions", chatbotId],
+    queryKey: getChatbotQuestionsQueryKey(chatbotId),
     initialPageParam: 1,
-
     queryFn: async ({ pageParam }) => {
       const params = new URLSearchParams({ page: String(pageParam) });
       const response = await fetch(
