@@ -1,8 +1,6 @@
 import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
 import { z } from "zod";
-import { db } from "@/db/drizzle/connection.ts";
-import { schema } from "@/db/drizzle/schema/index.ts";
-import { FailedToCreateResourceError } from "./errors/failed-to-create-resource-error.ts";
+import { getChatbotRepository } from "@/db/factories/repositories-factory.ts";
 
 export const createChatbotRoute: FastifyPluginCallbackZod = (app) => {
   app.post(
@@ -18,21 +16,11 @@ export const createChatbotRoute: FastifyPluginCallbackZod = (app) => {
     async (request, reply) => {
       const { title, description } = request.body;
 
-      const result = await db
-        .insert(schema.chatbots)
-        .values({
-          title,
-          description,
-        })
-        .returning();
+      const chatbotRepository = getChatbotRepository();
 
-      const insertedChatbot = result[0];
+      const result = await chatbotRepository.create({ title, description });
 
-      if (!insertedChatbot) {
-        throw new FailedToCreateResourceError("chatbot");
-      }
-
-      return reply.status(201).send({ chatbotId: insertedChatbot.id });
+      return reply.status(201).send({ chatbotId: result.id });
     }
   );
 };

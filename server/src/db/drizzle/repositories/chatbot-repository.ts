@@ -4,7 +4,11 @@ import type {
   PaginationParams,
 } from "@/domain/core/pagination-params.ts";
 import type { Chatbot, ChatbotWithStats } from "@/domain/entities/chatbot.ts";
-import type { ChatbotRepository } from "@/domain/repositories/chatbot-repository.ts";
+import type {
+  ChatbotRepository,
+  CreateChatbotParams,
+} from "@/domain/repositories/chatbot-repository.ts";
+import { FailedToCreateResourceError } from "@/http/routes/errors/failed-to-create-resource-error.ts";
 import { db } from "../connection.ts";
 import { schema } from "../schema/index.ts";
 
@@ -78,5 +82,23 @@ export class DrizzleChatbotRepository implements ChatbotRepository {
       .orderBy(desc(schema.chatbots.createdAt));
 
     return chatbot[0] || null;
+  }
+
+  async create({ title, description }: CreateChatbotParams): Promise<Chatbot> {
+    const result = await db
+      .insert(schema.chatbots)
+      .values({
+        title,
+        description,
+      })
+      .returning();
+
+    const insertedChatbot = result[0];
+
+    if (!insertedChatbot) {
+      throw new FailedToCreateResourceError("chatbot");
+    }
+
+    return insertedChatbot;
   }
 }
