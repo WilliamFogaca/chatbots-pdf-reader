@@ -1,7 +1,7 @@
 import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
 import { z } from "zod";
-import { db } from "@/db/connection.ts";
-import { schema } from "@/db/schema/index.ts";
+import { db } from "@/db/drizzle/connection.ts";
+import { schema } from "@/db/drizzle/schema/index.ts";
 import { extractPagesFromPDF } from "@/utils/extract-pages-from-pdf.ts";
 import { splitTextWithLangChain } from "@/utils/split-text-with-langchain.ts";
 import { FailedToCreateResourceError } from "./errors/failed-to-create-resource-error.ts";

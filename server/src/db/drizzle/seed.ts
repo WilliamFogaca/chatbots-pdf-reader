@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { reset, seed } from "drizzle-seed";
-import { db, sql } from "../db/connection.ts";
+import { db, sql } from "./connection.ts";
 import { chatbotQuestions } from "./schema/chatbot-questions.ts";
 import { chatbots } from "./schema/chatbots.ts";
 

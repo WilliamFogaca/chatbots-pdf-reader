@@ -1,8 +1,8 @@
 import { count, desc, eq } from "drizzle-orm";
 import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
 import { z } from "zod";
-import { db } from "../../db/connection.ts";
-import { schema } from "../../db/schema/index.ts";
+import { db } from "@/db/drizzle/connection.ts";
+import { schema } from "@/db/drizzle/schema/index.ts";
 
 export const getChatbotQuestionsRoute: FastifyPluginCallbackZod = (app) => {
   app.get(

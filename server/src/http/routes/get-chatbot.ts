@@ -1,8 +1,6 @@
-import { count, desc, eq, gt } from "drizzle-orm";
 import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
 import { z } from "zod";
-import { db } from "@/db/connection.ts";
-import { schema } from "@/db/schema/index.ts";
+import { getChatbotRepository } from "@/db/factories/chatbot-repository-factory.ts";
 
 export const getChatbotRoute: FastifyPluginCallbackZod = (app) => {
   app.get(
@@ -17,31 +15,11 @@ export const getChatbotRoute: FastifyPluginCallbackZod = (app) => {
     async (request) => {
       const { chatbotId } = request.params;
 
-      const chatbot = await db
-        .select({
-          id: schema.chatbots.id,
-          title: schema.chatbots.title,
-          description: schema.chatbots.description,
-          createdAt: schema.chatbots.createdAt,
-          questionCount: count(schema.chatbotQuestions.id),
-          hasPDF: gt(count(schema.chatbotPDFFiles.id), 0),
-        })
-        .from(schema.chatbots)
-        .where(eq(schema.chatbots.id, chatbotId))
-        .leftJoin(
-          schema.chatbotQuestions,
-          eq(schema.chatbots.id, schema.chatbotQuestions.chatbotId)
-        )
-        .leftJoin(
-          schema.chatbotPDFFiles,
-          eq(schema.chatbots.id, schema.chatbotPDFFiles.chatbotId)
-        )
-        .groupBy(schema.chatbots.id)
-        .orderBy(desc(schema.chatbots.createdAt));
+      const chatbotRepository = getChatbotRepository();
 
-      return {
-        chatbot: chatbot[0] || null,
-      };
+      const chatbot = await chatbotRepository.findById(chatbotId);
+
+      return { chatbot };
     }
   );
 };
