@@ -50,7 +50,7 @@ ollama pull nomic-embed-text
 
 ### 4. Iniciar o banco de dados
 
-Execute o PostgreSQL com Docker:
+Faça download do Docker em [https://www.docker.com/](https://www.docker.com/) e execute o PostgreSQL com Docker Compose:
 
 ```bash
 docker-compose up -d
@@ -96,9 +96,14 @@ O servidor estará rodando em `http://localhost:3333`
 ## 🔧 Padrões de Projeto
 
 - **Type-safe API** - Uso de Zod com Fastify para validação de tipos em runtime
-- **Snake case** - Convenção de nomenclatura para colunas do banco de dados (via Drizzle)
-- **Repository Pattern** - Schemas do Drizzle organizados por entidade na pasta `db/schema/`
+- **Repository Pattern** - Camada de abstração para acesso a dados, permitindo trocar o ORM facilmente
+  - Interfaces no `domain/repositories/` (independente de implementação)
+  - Implementações específicas em `db/drizzle/repositories/`
+  - Factory pattern em `db/factories/` para instanciar repositories
+  - Para trocar de Drizzle para outro ORM (Prisma), basta criar novas implementações sem alterar as rotas
+- **Domain-Driven Design** - Entidades e tipos de negócio separados em `domain/`
 - **Service Layer** - Lógica de negócio isolada em services (AI providers, etc.)
+- **Snake case** - Convenção de nomenclatura para colunas do banco de dados (via Drizzle)
 
 ## Perguntas
 
@@ -130,6 +135,16 @@ A implementação segue o padrão clássico de RAG:
 
 NestJS seria overkill para este projeto porque adiciona camadas de abstração desnecessárias para um escopo simples. NestJS é mais adequado para projetos corporativos grandes com múltiplos módulos.
 
+**Por que PostgreSQL?**
+
+- ✅ **pgvector**: Extensão nativa para embeddings vetoriais, essencial para RAG
+- ✅ **Performance**: Busca de similaridade vetorial otimizada com índices HNSW
+- ✅ **Maturidade**: Banco de dados robusto e confiável para produção
+- ✅ **Open source**: Sem custos de licenciamento
+- ✅ **Ecossistema rico**: Suporte excelente em ORMs e ferramentas
+
+Para este projeto de RAG, o PostgreSQL com pgvector elimina a necessidade de bancos vetoriais especializados, simplificando a arquitetura ao manter dados relacionais e vetoriais no mesmo lugar.
+
 **Por que Drizzle ORM?**
 
 - ✅ **Type-safety total** com TypeScript
@@ -138,24 +153,26 @@ NestJS seria overkill para este projeto porque adiciona camadas de abstração d
 - ✅ **Migrations simples**: Fácil gerenciamento com Drizzle Kit
 - ✅ **Portabilidade**: Facilita mudança entre bancos de dados
 
-A escolha de um ORM acelera o desenvolvimento e aumenta a manutenibilidade do código.
+A escolha de um ORM acelera o desenvolvimento e aumenta a manutenibilidade do código. O uso do **Repository Pattern** garante que a troca para outro ORM (como Prisma) seja feita alterando apenas a camada de implementação, sem impactar as rotas ou regras de negócio.
 
 ### Quais melhorias posso fazer com mais tempo?
 
 **1. Autenticação JWT** (Impacto: Alto | Complexidade: Média)
+
 - Implementar endpoints de login e cadastro
 - Adicionar autenticação com JWT usando `@fastify/jwt`
 - Criar tabela `users` e proteger rotas
 - Associar chatbots aos usuários logados
 
 **2. Listagem e Gerenciamento de PDFs** (Impacto: Alto | Complexidade: Baixa)
+
 - Modificar endpoint `GET /chatbots/:id` para incluir lista de PDFs enviados
 - Criar endpoint `DELETE /chatbots/:id/files/:fileId` para remover PDFs
 - Melhorar visualização dos documentos vinculados
 
 **3. Busca Híbrida (Vetorial + Full-Text)** (Impacto: Alto | Complexidade: Alta)
+
 - Combinar busca vetorial (semântica) com busca Full-Text (palavras-chave)
 - Ponderação entre busca semântica (70%) e keyword (30%)
 - Melhor captura de termos técnicos específicos
 - Adicionar índice GIN no PostgreSQL para otimização
-  
