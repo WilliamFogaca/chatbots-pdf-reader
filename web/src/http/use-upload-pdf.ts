@@ -1,29 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import type { UploadPDFRequest } from "./types/upload-pdf-request";
+import { api } from "@/lib/api";
+import type { UploadPDFRequest } from "@/lib/api/types/upload-pdf-request";
 
 export function useUploadPDF() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ chatbotId, file }: UploadPDFRequest) => {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const response = await fetch(
-        `http://localhost:3333/chatbots/${chatbotId}/pdf-files/upload`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to upload PDF");
-      }
-
-      await response.json();
-    },
+    mutationFn: async (request: UploadPDFRequest) => api.uploadPDF(request),
     onSuccess: (_, variables) => {
       toast.success("PDF enviado com sucesso!");
 

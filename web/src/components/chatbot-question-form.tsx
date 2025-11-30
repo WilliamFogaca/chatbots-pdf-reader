@@ -16,8 +16,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useChatbot } from "@/http/use-chatbot";
 import { useCreateChatbotQuestion } from "@/http/use-create-chatbot-question";
 import { EmptyData } from "./empty-data";
-import { ErrorAlert } from "./error-alert";
-import { LoadingWithText } from "./loading-with-text";
 import { DialogTrigger } from "./ui/dialog";
 import { UploadPDFButton } from "./upload-pdf-button";
 
@@ -36,7 +34,8 @@ type QuestionFormProps = {
 };
 
 export function ChatbotQuestionForm({ chatbotId }: QuestionFormProps) {
-  const { data: chatbot, isLoading, isError, refetch } = useChatbot(chatbotId);
+  const { data: chatbotData } = useChatbot(chatbotId);
+  const chatbot = chatbotData.chatbot;
   const { mutateAsync: createQuestion } = useCreateChatbotQuestion();
 
   const form = useForm<CreateQuestionFormData>({
@@ -58,14 +57,6 @@ export function ChatbotQuestionForm({ chatbotId }: QuestionFormProps) {
     }
 
     form.reset();
-  }
-
-  if (isLoading) {
-    return <LoadingWithText />;
-  }
-
-  if (isError || !chatbot) {
-    return <ErrorAlert tryAgain={() => refetch()} />;
   }
 
   if (!chatbot.hasPDF) {

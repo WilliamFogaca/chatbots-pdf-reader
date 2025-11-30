@@ -4,39 +4,18 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { api } from "@/lib/api";
+import type { CreateChatbotQuestionRequest } from "@/lib/api/types/create-chatbot-question-request";
+import type { GetChatbotQuestionsResponse } from "@/lib/api/types/get-chatbot-questions-response";
 import type { ChatbotQuestion } from "@/types/chatbot-questions";
-import type { CreateChatbotQuestionRequest } from "./types/create-chatbot-question-request";
-import type { CreateChatbotQuestionResponse } from "./types/create-chatbot-question-response";
-import type { GetChatbotQuestionsResponse } from "./types/get-chatbot-questions-response";
 import { getChatbotQuestionsQueryKey } from "./use-chatbot-questions";
 
 export function useCreateChatbotQuestion() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      chatbotId,
-      question,
-    }: CreateChatbotQuestionRequest) => {
-      const response = await fetch(
-        `http://localhost:3333/chatbots/${chatbotId}/questions`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ question }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to create question");
-      }
-
-      const result: CreateChatbotQuestionResponse = await response.json();
-
-      return result;
-    },
+    mutationFn: async (request: CreateChatbotQuestionRequest) =>
+      api.createChatbotQuestion(request),
 
     async onMutate({ chatbotId, question }) {
       const queryKey = getChatbotQuestionsQueryKey(chatbotId);

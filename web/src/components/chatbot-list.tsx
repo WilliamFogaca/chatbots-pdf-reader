@@ -2,7 +2,7 @@
 
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -14,44 +14,45 @@ import {
 import { useChatbots } from "@/http/use-chatbots";
 import { dayjs } from "@/lib/dayjs";
 import { EmptyData } from "./empty-data";
-import { ErrorAlert } from "./error-alert";
-import { LoadingWithText } from "./loading-with-text";
 import { Button } from "./ui/button";
 
 export function ChatbotList() {
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    status,
-    refetch,
-  } = useChatbots();
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useChatbots();
   const chatbots = useMemo(
-    () => data?.pages.flatMap((page) => page.chatbots) ?? [],
+    () => data.pages.flatMap((page) => page.chatbots),
     [data]
   );
 
-  const renderList = useCallback(() => {
-    if (status === "pending") {
-      return <LoadingWithText />;
-    }
-
-    if (status === "error") {
-      return <ErrorAlert tryAgain={() => refetch()} />;
-    }
-
-    if (chatbots?.length === 0) {
-      return (
-        <EmptyData
-          description="Crie um novo chatbot para começar."
-          title="Nenhum chatbot encontrado."
-        />
-      );
-    }
-
+  if (chatbots.length === 0) {
     return (
-      <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Chatbots recentes</CardTitle>
+          <CardDescription>
+            Acesso rápido para os chatbots criados recentemente.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <EmptyData
+            description="Crie um novo chatbot para começar."
+            title="Nenhum chatbot encontrado."
+          />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Chatbots recentes</CardTitle>
+        <CardDescription>
+          Acesso rápido para os chatbots criados recentemente.
+        </CardDescription>
+      </CardHeader>
+
+      <CardContent className="flex flex-col gap-3">
         {chatbots.map((chatbot) => (
           <Link
             className="flex items-center justify-between rounded-lg border p-3 hover:bg-accent/50"
@@ -87,27 +88,7 @@ export function ChatbotList() {
             {isFetchingNextPage ? "Carregando..." : "Carregar mais"}
           </Button>
         )}
-      </>
-    );
-  }, [
-    status,
-    chatbots,
-    refetch,
-    isFetchingNextPage,
-    fetchNextPage,
-    hasNextPage,
-  ]);
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Chatbots recentes</CardTitle>
-        <CardDescription>
-          Acesso rápido para os chatbots criados recentemente.
-        </CardDescription>
-      </CardHeader>
-
-      <CardContent className="flex flex-col gap-3">{renderList()}</CardContent>
+      </CardContent>
     </Card>
   );
 }

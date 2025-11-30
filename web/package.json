@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "lint": "npx ultracite check",
+    "lint:format": "npx ultracite fix"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

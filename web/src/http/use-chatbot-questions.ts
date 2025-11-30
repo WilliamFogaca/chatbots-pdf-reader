@@ -1,43 +1,26 @@
 import {
   type InfiniteData,
-  type QueryKey,
-  useInfiniteQuery,
+  useSuspenseInfiniteQuery,
 } from "@tanstack/react-query";
-import type { GetChatbotQuestionsResponse } from "./types/get-chatbot-questions-response";
-
-type ApiError = {
-  message: string;
-  statusCode?: number;
-};
+import { api } from "@/lib/api";
+import type { GetChatbotQuestionsResponse } from "@/lib/api/types/get-chatbot-questions-response";
 
 export function getChatbotQuestionsQueryKey(chatbotId: string) {
   return ["get-chatbot-questions", chatbotId];
 }
 
 export function useChatbotQuestions(chatbotId: string) {
-  return useInfiniteQuery<
+  return useSuspenseInfiniteQuery<
     GetChatbotQuestionsResponse,
-    ApiError,
+    Error,
     InfiniteData<GetChatbotQuestionsResponse>,
-    QueryKey,
+    string[],
     number
   >({
     queryKey: getChatbotQuestionsQueryKey(chatbotId),
     initialPageParam: 1,
-    queryFn: async ({ pageParam }) => {
-      const params = new URLSearchParams({ page: String(pageParam) });
-      const response = await fetch(
-        `http://localhost:3333/chatbots/${chatbotId}/questions?${params.toString()}`
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-
-        throw errorData;
-      }
-
-      return response.json();
-    },
+    queryFn: async ({ pageParam }) =>
+      api.getChatbotQuestions({ chatbotId, pageParam }),
     getNextPageParam: (lastPage) => {
       if (lastPage.pagination.hasNextPage) {
         return lastPage.pagination.page + 1;

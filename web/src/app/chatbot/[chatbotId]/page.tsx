@@ -1,8 +1,11 @@
 import { Dialog } from "@radix-ui/react-dialog";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
 import { ChatbotQuestionForm } from "@/components/chatbot-question-form";
 import { ChatbotQuestionList } from "@/components/chatbot-question-list";
+import { ErrorBoundary } from "@/components/error-boundary";
+import { LoadingWithText } from "@/components/loading-with-text";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -61,12 +64,22 @@ export default async function ChatbotPage({
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ChatbotQuestionForm chatbotId={chatbotIdParam} />
+                <ErrorBoundary>
+                  <Suspense fallback={<LoadingWithText />}>
+                    <ChatbotQuestionForm chatbotId={chatbotIdParam} />
+                  </Suspense>
+                </ErrorBoundary>
               </CardContent>
             </Card>
           </div>
 
-          <ChatbotQuestionList chatbotId={chatbotIdParam} />
+          <ErrorBoundary>
+            <Suspense
+              fallback={<LoadingWithText text="Carregando perguntas..." />}
+            >
+              <ChatbotQuestionList chatbotId={chatbotIdParam} />
+            </Suspense>
+          </ErrorBoundary>
         </div>
       </div>
 
