@@ -1,5 +1,4 @@
 import { count, desc, eq } from "drizzle-orm";
-import { FailedToCreateResourceError } from "@/domain/errors/failed-to-create-resource-error.ts";
 import type {
   ChatbotQuestionsRepository,
   CreateChatbotQuestionParams,
@@ -71,12 +70,6 @@ export class DrizzleChatbotQuestionsRepository
       })
       .returning();
 
-    const insertedChatbotQuestion = result[0];
-
-    if (!insertedChatbotQuestion) {
-      throw new FailedToCreateResourceError("pergunta do chatbot");
-    }
-
-    return insertedChatbotQuestion;
+    return result[0];
   }
 }

@@ -8,7 +8,6 @@ import type {
   FindManyChatbotsParams,
   FindManyChatbotsResult,
 } from "@/domain/repositories/chatbot-repository.ts";
-import { FailedToCreateResourceError } from "@/http/routes/errors/failed-to-create-resource-error.ts";
 import { db } from "../connection.ts";
 import { schema } from "../schema/index.ts";
 
@@ -98,12 +97,6 @@ export class DrizzleChatbotRepository implements ChatbotRepository {
       })
       .returning();
 
-    const insertedChatbot = result[0];
-
-    if (!insertedChatbot) {
-      throw new FailedToCreateResourceError("chatbot");
-    }
-
-    return insertedChatbot;
+    return result[0];
   }
 }

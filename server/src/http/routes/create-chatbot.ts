@@ -1,6 +1,7 @@
 import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { getChatbotRepository } from "@/db/factories/repositories-factory.ts";
+import { FailedToCreateResourceError } from "@/domain/errors/failed-to-create-resource-error.ts";
 
 export const createChatbotRoute: FastifyPluginCallbackZod = (app) => {
   app.post(
@@ -18,9 +19,16 @@ export const createChatbotRoute: FastifyPluginCallbackZod = (app) => {
 
       const chatbotRepository = getChatbotRepository();
 
-      const result = await chatbotRepository.create({ title, description });
+      const insertedChatbot = await chatbotRepository.create({
+        title,
+        description,
+      });
 
-      return reply.status(201).send({ chatbotId: result.id });
+      if (!insertedChatbot) {
+        throw new FailedToCreateResourceError("chatbot");
+      }
+
+      return reply.status(201).send({ chatbotId: insertedChatbot.id });
     }
   );
 };

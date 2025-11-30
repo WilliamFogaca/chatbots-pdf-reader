@@ -1,9 +1,10 @@
-import { and, cosineDistance, desc, eq, gt, sql } from "drizzle-orm";
 import type { FastifyPluginCallbackZod } from "fastify-type-provider-zod";
 import { z } from "zod";
-import { db } from "@/db/drizzle/connection.ts";
-import { schema } from "@/db/drizzle/schema/index.ts";
-import { getChatbotQuestionsRepository } from "@/db/factories/repositories-factory.ts";
+import {
+  getChatbotQuestionsRepository,
+  getPDFFileChunksRepository,
+} from "@/db/factories/repositories-factory.ts";
+import { FailedToCreateResourceError } from "@/domain/errors/failed-to-create-resource-error.ts";
 import {
   generateAnswer,
   generateEmbeddings,
@@ -30,27 +31,13 @@ export const createChatbotQuestionRoute: FastifyPluginCallbackZod = (app) => {
       const questionInEnglish = await translateContentToEnglish(question);
 
       const questionEmbeddings = await generateEmbeddings(questionInEnglish);
-      const chunkSimilarity = sql<number>`1 - (${cosineDistance(schema.pdfFileChunks.embeddings, questionEmbeddings)})`;
 
-      const chunks = await db
-        .select({
-          id: schema.pdfFileChunks.id,
-          content: schema.pdfFileChunks.content,
-          similarity: chunkSimilarity,
-        })
-        .from(schema.pdfFileChunks)
-        .innerJoin(
-          schema.chatbotPDFFiles,
-          eq(schema.chatbotPDFFiles.id, schema.pdfFileChunks.pdfFileId)
-        )
-        .where(
-          and(
-            eq(schema.chatbotPDFFiles.chatbotId, chatbotId),
-            gt(chunkSimilarity, 0.25)
-          )
-        )
-        .orderBy((table) => desc(table.similarity))
-        .limit(5);
+      const pdfFileChunks = getPDFFileChunksRepository();
+
+      const chunks = await pdfFileChunks.findManyWithSimilarity({
+        chatbotId,
+        embeddings: questionEmbeddings,
+      });
 
       let answer: string | null = null;
 
@@ -61,14 +48,18 @@ export const createChatbotQuestionRoute: FastifyPluginCallbackZod = (app) => {
 
       const chatbotQuestionRepository = getChatbotQuestionsRepository();
 
-      const result = await chatbotQuestionRepository.create({
+      const insertedChatbotQuestion = await chatbotQuestionRepository.create({
         chatbotId,
         question,
         answer,
       });
 
+      if (!insertedChatbotQuestion) {
+        throw new FailedToCreateResourceError("pergunta do chatbot");
+      }
+
       return reply.status(201).send({
-        questionId: result.id,
+        questionId: insertedChatbotQuestion.id,
         answer,
       });
     }
