@@ -94,3 +94,9 @@ O frontend estará rodando em `http://localhost:3000`
 - Implementar filtro por título do chatbot
 - Adicionar debounce para otimizar performance
 - Opcionalmente: filtros por data de criação ou quantidade de PDFs
+
+**4. Testes End-to-End (E2E)** (Impacto: Alto | Complexidade: Média)
+- Implementar testes E2E com **Playwright**
+- Testar fluxos completos: criar chatbot → upload PDF → fazer perguntas
+- Cobrir casos de sucesso e erro
+- Integrar com CI/CD para rodar testes automaticamente
