@@ -176,3 +176,26 @@ A escolha de um ORM acelera o desenvolvimento e aumenta a manutenibilidade do c�
 - Ponderação entre busca semântica (70%) e keyword (30%)
 - Melhor captura de termos técnicos específicos
 - Adicionar índice GIN no PostgreSQL para otimização
+
+**4. Cache com Redis** (Impacto: Médio | Complexidade: Média)
+
+- Implementar cache de respostas frequentes usando Redis
+- Cache de embeddings de perguntas comuns
+- Cache de resultados de busca vetorial
+- Invalidação inteligente de cache ao adicionar novos PDFs
+- Redução de chamadas ao Ollama e queries ao banco
+
+**5. Clean Architecture e Use Cases** (Impacto: Médio | Complexidade: Alta)
+
+- **Camada de Use Cases**: Extrair lógica das rotas para casos de uso independentes
+- **Inversão de dependência**: Use cases receberiam repositories via injeção de dependência
+- **Melhor testabilidade**: Testar lógica de negócio sem depender de HTTP ou ORM
+- **Separação clara**: Controllers (rotas) → Use Cases → Repositories → Database
+- Exemplo: `CreateChatbotUseCase`, `AnswerQuestionUseCase`
+
+**6. Testes Mais Robustos** (Impacto: Alto | Complexidade: Média)
+
+- **Testes de integração com banco real**: Usar PostgreSQL de teste com pgvector para validar queries vetoriais
+- **Testes E2E (end-to-end)**: Fluxos completos desde upload de PDF até geração de resposta
+- **Test containers**: Docker containers descartáveis para testes isolados
+- Melhor cobertura de edge cases e cenários de erro
