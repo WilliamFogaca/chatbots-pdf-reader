@@ -46,9 +46,24 @@ O frontend estará rodando em `http://localhost:3000`
 
 ## 📝 Scripts Disponíveis
 
+### Desenvolvimento
+
 - `npm run dev` - Inicia o servidor de desenvolvimento Next.js
 - `npm run build` - Gera build de produção
 - `npm run start` - Inicia o servidor de produção (serve o build gerado)
+
+### Qualidade de Código
+
+- `npm run lint` - Verifica problemas de linting e formatação com Ultracite
+- `npm run lint:format` - Corrige automaticamente problemas de formatação
+
+### Testes
+
+- `npm test` - Executa todos os testes em modo watch
+- `npm run test:ui` - Abre interface gráfica do Vitest
+- `npm run test:coverage` - Gera relatório de cobertura de testes
+- `npm run test:unit` - Executa apenas testes unitários
+- `npm run test:integration` - Executa apenas testes de integração
 
 ## 🔧 Padrões de Projeto
 
