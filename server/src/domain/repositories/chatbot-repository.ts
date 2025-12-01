@@ -12,7 +12,7 @@ export type FindChatbotByIdParams = {
   chatbotId: string;
 };
 
-export type FindChatbotByIdResult = Chatbot | null;
+export type FindChatbotByIdResult = ChatbotWithStats | null;
 
 export type CreateChatbotParams = {
   title: string;

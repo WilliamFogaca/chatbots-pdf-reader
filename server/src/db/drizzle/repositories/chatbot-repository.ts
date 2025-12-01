@@ -1,4 +1,4 @@
-import { count, desc, eq, gt } from "drizzle-orm";
+import { count, desc, eq } from "drizzle-orm";
 import type {
   ChatbotRepository,
   CreateChatbotParams,
@@ -60,14 +60,14 @@ export class DrizzleChatbotRepository implements ChatbotRepository {
   async findById({
     chatbotId,
   }: FindChatbotByIdParams): Promise<FindChatbotByIdResult> {
-    const chatbot = await db
+    const result = await db
       .select({
         id: schema.chatbots.id,
         title: schema.chatbots.title,
         description: schema.chatbots.description,
         createdAt: schema.chatbots.createdAt,
         questionCount: count(schema.chatbotQuestions.id),
-        hasPDF: gt(count(schema.chatbotPDFFiles.id), 0),
+        pdfCount: count(schema.chatbotPDFFiles.id),
       })
       .from(schema.chatbots)
       .where(eq(schema.chatbots.id, chatbotId))
@@ -82,7 +82,18 @@ export class DrizzleChatbotRepository implements ChatbotRepository {
       .groupBy(schema.chatbots.id)
       .orderBy(desc(schema.chatbots.createdAt));
 
-    return chatbot[0] || null;
+    const chatbot = result[0];
+
+    if (!chatbot) {
+      return null;
+    }
+
+    const { pdfCount, ...chatbotData } = chatbot;
+
+    return {
+      ...chatbotData,
+      hasPDF: pdfCount > 0,
+    };
   }
 
   async create({
