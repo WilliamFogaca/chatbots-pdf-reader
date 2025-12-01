@@ -20,6 +20,7 @@ export const getChatbotsRoute: FastifyPluginCallbackZod = (app) => {
                 title: z.string(),
                 description: z.string().nullable(),
                 createdAt: z.date(),
+                questionCount: z.number(),
               })
             ),
             pagination: z.object({
