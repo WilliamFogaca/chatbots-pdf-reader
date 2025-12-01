@@ -16,12 +16,21 @@ export const createChatbotQuestionRoute: FastifyPluginCallbackZod = (app) => {
     "/chatbots/:chatbotId/questions",
     {
       schema: {
+        tags: ["questions"],
+        description:
+          "Criar uma nova pergunta e obter resposta do chatbot baseada nos PDFs",
         params: z.object({
           chatbotId: z.uuid(),
         }),
         body: z.object({
           question: z.string().min(10),
         }),
+        response: {
+          201: z.object({
+            questionId: z.string().uuid(),
+            answer: z.string().nullable(),
+          }),
+        },
       },
     },
     async (request, reply) => {

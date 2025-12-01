@@ -7,9 +7,23 @@ export const getChatbotRoute: FastifyPluginCallbackZod = (app) => {
     "/chatbots/:chatbotId",
     {
       schema: {
+        tags: ["chatbots"],
+        description: "Buscar um chatbot por ID",
         params: z.object({
           chatbotId: z.uuid(),
         }),
+        response: {
+          200: z.object({
+            chatbot: z
+              .object({
+                id: z.string().uuid(),
+                title: z.string(),
+                description: z.string().nullable(),
+                createdAt: z.date(),
+              })
+              .nullable(),
+          }),
+        },
       },
     },
     async (request) => {

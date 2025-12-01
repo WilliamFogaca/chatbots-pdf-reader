@@ -8,10 +8,17 @@ export const createChatbotRoute: FastifyPluginCallbackZod = (app) => {
     "/chatbots",
     {
       schema: {
+        tags: ["chatbots"],
+        description: "Criar um novo chatbot",
         body: z.object({
           title: z.string().min(3),
           description: z.string().optional(),
         }),
+        response: {
+          201: z.object({
+            chatbotId: z.string().uuid(),
+          }),
+        },
       },
     },
     async (request, reply) => {

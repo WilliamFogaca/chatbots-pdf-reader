@@ -1,11 +1,14 @@
 import { fastifyCors } from "@fastify/cors";
 import fastifyMultipart from "@fastify/multipart";
+import fastifySwagger from "@fastify/swagger";
+import fastifySwaggerUI from "@fastify/swagger-ui";
 import { fastify } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import {
   serializerCompiler,
   validatorCompiler,
 } from "fastify-type-provider-zod";
+import { swaggerOptions, swaggerUiOptions } from "./config/swagger.ts";
 // Routes
 import { createChatbotRoute } from "./http/routes/create-chatbot.ts";
 import { createChatbotQuestionRoute } from "./http/routes/create-chatbot-question.ts";
@@ -29,6 +32,9 @@ export function buildApp() {
 
   app.setSerializerCompiler(serializerCompiler);
   app.setValidatorCompiler(validatorCompiler);
+
+  app.register(fastifySwagger, swaggerOptions);
+  app.register(fastifySwaggerUI, swaggerUiOptions);
 
   app.get("/health", async () => ({ status: "ok" }));
 

@@ -7,9 +7,30 @@ export const getChatbotsRoute: FastifyPluginCallbackZod = (app) => {
     "/chatbots",
     {
       schema: {
+        tags: ["chatbots"],
+        description: "Listar chatbots com paginação",
         querystring: z.object({
           page: z.coerce.number().optional().default(1),
         }),
+        response: {
+          200: z.object({
+            chatbots: z.array(
+              z.object({
+                id: z.string().uuid(),
+                title: z.string(),
+                description: z.string().nullable(),
+                createdAt: z.date(),
+              })
+            ),
+            pagination: z.object({
+              page: z.number(),
+              itemsPerPage: z.number(),
+              totalItems: z.number(),
+              totalPages: z.number(),
+              hasNextPage: z.boolean(),
+            }),
+          }),
+        },
       },
     },
     async (request) => {

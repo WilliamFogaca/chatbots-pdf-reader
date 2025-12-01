@@ -11,9 +11,17 @@ export const uploadPDFFileRoute: FastifyPluginCallbackZod = (app) => {
     "/chatbots/:chatbotId/pdf-files/upload",
     {
       schema: {
+        tags: ["pdf-files"],
+        description:
+          "Fazer upload de um arquivo PDF para um chatbot. Envie o arquivo usando multipart/form-data com o campo 'file' (máximo 5MB).",
         params: z.object({
           chatbotId: z.uuid(),
         }),
+        response: {
+          201: z.object({
+            totalChunks: z.number(),
+          }),
+        },
       },
     },
     async (request, reply) => {
