@@ -20,7 +20,7 @@ export const createChatbotQuestionRoute: FastifyPluginCallbackZod = (app) => {
           chatbotId: z.uuid(),
         }),
         body: z.object({
-          question: z.string().min(1),
+          question: z.string().min(10),
         }),
       },
     },
