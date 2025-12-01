@@ -12,6 +12,8 @@ API REST do projeto Chatbots PDF Reader.
 - **LangChain** - Text splitters para processamento de PDFs
 - **pdf.js** - Extração de texto de PDFs
 - **Zod** - Validação de schemas
+- **Swagger/OpenAPI** - Documentação automática da API
+- **Vitest** - Framework de testes unitários e de integração
 - **Biome**/**Ultracite** - Linter e formatter
 
 ## 📋 Pré-requisitos
@@ -84,18 +86,38 @@ npm start
 ```
 
 O servidor estará rodando em `http://localhost:3333`
+Documentação em `http://localhost:3333/docs`
 
 ## 📝 Scripts Disponíveis
 
+### Desenvolvimento
+
 - `npm run dev` - Inicia o servidor em modo desenvolvimento com watch mode
 - `npm start` - Inicia o servidor em modo produção
+
+### Banco de Dados
+
 - `npm run db:generate` - Gera migrations baseadas nas mudanças do schema
 - `npm run db:migrate` - Executa as migrations pendentes no banco de dados
 - `npm run db:seed` - Popula o banco de dados com dados de exemplo
 
+### Qualidade de Código
+
+- `npm run lint` - Verifica problemas de linting e formatação com Ultracite
+- `npm run lint:format` - Corrige automaticamente problemas de formatação
+
+### Testes
+
+- `npm test` - Executa todos os testes em modo watch
+- `npm run test:ui` - Abre interface gráfica do Vitest
+- `npm run test:coverage` - Gera relatório de cobertura de testes
+- `npm run test:unit` - Executa apenas testes unitários
+- `npm run test:integration` - Executa apenas testes de integração
+
 ## 🔧 Padrões de Projeto
 
 - **Type-safe API** - Uso de Zod com Fastify para validação de tipos em runtime
+- **Swagger/OpenAPI** - Documentação automática da API com `@fastify/swagger` e `@fastify/swagger-ui`, gerando especificação OpenAPI a partir dos schemas Zod
 - **Repository Pattern** - Camada de abstração para acesso a dados, permitindo trocar o ORM facilmente
   - Interfaces no `domain/repositories/` (independente de implementação)
   - Implementações específicas em `db/drizzle/repositories/`
