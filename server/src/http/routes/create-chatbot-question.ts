@@ -27,7 +27,7 @@ export const createChatbotQuestionRoute: FastifyPluginCallbackZod = (app) => {
         }),
         response: {
           201: z.object({
-            questionId: z.string().uuid(),
+            questionId: z.uuid(),
             answer: z.string().nullable(),
           }),
         },

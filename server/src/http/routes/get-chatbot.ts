@@ -16,7 +16,7 @@ export const getChatbotRoute: FastifyPluginCallbackZod = (app) => {
           200: z.object({
             chatbot: z
               .object({
-                id: z.string().uuid(),
+                id: z.uuid(),
                 title: z.string(),
                 description: z.string().nullable(),
                 createdAt: z.date(),
