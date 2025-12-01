@@ -28,7 +28,15 @@ Interface web do projeto Chatbots PDF Reader.
 npm install
 ```
 
-### 2. Iniciar o servidor de desenvolvimento
+### 2. Configurar variáveis de ambiente
+
+Copie o arquivo de exemplo:
+
+```bash
+cp .env.example .env
+```
+
+### 3. Iniciar o servidor de desenvolvimento
 
 ```bash
 npm run dev
