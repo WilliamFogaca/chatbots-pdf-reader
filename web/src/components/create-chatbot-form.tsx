@@ -48,7 +48,7 @@ export function CreateChatbotForm() {
     try {
       await createChatbot({ title, description });
     } catch {
-      // Error handling is done in the useCreateChatbot hook
+      // Error handling is done in the hook
     }
 
     createChatbotForm.reset();

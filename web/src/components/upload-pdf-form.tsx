@@ -59,7 +59,7 @@ export function UploadPDFForm({ chatbotId }: UploadPDFFormProps) {
       uploadPDFForm.reset();
       dismissCurrentModal();
     } catch {
-      // Error handling is done in the mutation's onError
+      // Error handling is done in the hook
     }
   }
 
