@@ -34,11 +34,11 @@ export class DrizzlePDFFileChunksRepository implements PDFFileChunksRepository {
       .where(
         and(
           eq(schema.chatbotPDFFiles.chatbotId, chatbotId),
-          gt(chunkSimilarity, 0.25)
+          gt(chunkSimilarity, 0.5)
         )
       )
       .orderBy((table) => desc(table.similarity))
-      .limit(5);
+      .limit(10);
 
     return chunks;
   }
