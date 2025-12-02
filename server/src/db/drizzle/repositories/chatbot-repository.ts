@@ -66,15 +66,10 @@ export class DrizzleChatbotRepository implements ChatbotRepository {
         title: schema.chatbots.title,
         description: schema.chatbots.description,
         createdAt: schema.chatbots.createdAt,
-        questionCount: count(schema.chatbotQuestions.id),
         pdfCount: count(schema.chatbotPDFFiles.id),
       })
       .from(schema.chatbots)
       .where(eq(schema.chatbots.id, chatbotId))
-      .leftJoin(
-        schema.chatbotQuestions,
-        eq(schema.chatbots.id, schema.chatbotQuestions.chatbotId)
-      )
       .leftJoin(
         schema.chatbotPDFFiles,
         eq(schema.chatbots.id, schema.chatbotPDFFiles.chatbotId)

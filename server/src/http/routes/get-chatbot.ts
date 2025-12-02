@@ -20,8 +20,7 @@ export const getChatbotRoute: FastifyPluginCallbackZod = (app) => {
                 title: z.string(),
                 description: z.string().nullable(),
                 createdAt: z.date(),
-                questionCount: z.number().nullable().optional(),
-                hasPDF: z.boolean().nullable().optional(),
+                hasPDF: z.boolean().optional(),
               })
               .nullable(),
           }),

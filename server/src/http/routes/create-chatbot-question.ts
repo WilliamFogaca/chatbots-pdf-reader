@@ -48,7 +48,8 @@ export const createChatbotQuestionRoute: FastifyPluginCallbackZod = (app) => {
         embeddings: questionEmbeddings,
       });
 
-      let answer: string | null = null;
+      let answer: string | null =
+        "Desculpe, não encontrei nenhuma informação no PDF para responder a essa pergunta.";
 
       if (chunks.length > 0) {
         const contents = chunks.map((chunk) => chunk.content);

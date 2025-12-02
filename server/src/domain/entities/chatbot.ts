@@ -6,6 +6,6 @@ export type Chatbot = {
 };
 
 export type ChatbotWithStats = Chatbot & {
-  questionCount?: number | null;
-  hasPDF?: boolean | null;
+  questionCount?: number;
+  hasPDF?: boolean;
 };
